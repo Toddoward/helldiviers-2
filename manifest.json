@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "SEAF: Super Earth Auto Finder",
+  "version": "0.0.0",
+  "description": "헬다이버즈 갤러리 망호 자동 생성 및 참여, 실시간 알림 지원 확장 프로그램",
+  "permissions": [
+    "storage",
+    "tabs",
+    "notifications",
+    "alarms",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://gall.dcinside.com/*",
+    "https://steamcommunity.com/id/*",
+    "https://steamcommunity.com/profiles/*"
+  ],
+  "background": {
+    "service_worker": "scripts/background.js"
+  },
+  "action": {
+    "default_popup": "popup/popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://gall.dcinside.com/mgallery/board/lists/*",
+        "https://gall.dcinside.com/mgallery/board/view/*",
+        "https://gall.dcinside.com/mgallery/board/write/*"
+      ],
+      "js": ["config.js", "scripts/content.js"],
+      "css": ["styles/inject.css", "styles/tags.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["utils/steam_parser.js", "config.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

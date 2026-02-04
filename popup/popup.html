@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEAF Settings</title>
+  <style>
+    :root {
+      --bg-color: #f1f1f1;
+      --card-bg: #1e1f21;
+      --text-color: #f1f1f1;
+      --accent-color: #41639C;
+      --accent-dim: #81abff33;
+      --border-color: #686868;
+      --border-radius: 4px;
+    }
+
+    body {
+      width: 340px;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: "Segoe UI", "Roboto", "Arial", sans-serif;
+      margin: 0;
+      border: 1px solid var(--border-color);
+    }
+
+    .header-banner {
+      background: var(--accent-color);
+      color: #ffffff;
+      padding: 8px 16px;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 2px;
+      text-align: center;
+      text-transform: uppercase;
+      box-shadow: 0 4px 10px #41639C33;
+    }
+
+    .container {
+      padding: 16px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      font-size: 11px;
+      margin: 0 0 10px 0;
+      color: var(--accent-color);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      border-left: 3px solid var(--accent-color);
+      padding-left: 8px;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      background: #36393f;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      color: white;
+      box-sizing: border-box;
+      outline: none;
+      font-size: 12px;
+      transition: border-color 0.2s;
+    }
+
+    textarea {
+      height: 60px;
+      resize: none;
+      font-family: inherit;
+    }
+
+    input[type="text"]:focus, textarea:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 5px var(--accent-dim);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 10px 6px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      color: #aaa;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: bold;
+      text-align: center;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn span:first-child { font-size: 18px; filter: grayscale(100%); }
+    .btn:hover { background: #2a2c2f; color: #fff; }
+    .btn.active { border-color: var(--accent-color); background: var(--accent-dim); color: var(--accent-color); }
+    .btn.active span:first-child { filter: grayscale(0%); }
+
+    #dynamic-area {
+      margin-top: 10px;
+      display: none;
+      background: rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      border-radius: var(--border-radius);
+      border: 1px dashed var(--border-color);
+    }
+
+    .tag-group { margin-bottom: 12px; }
+    .tag-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .tag-btn {
+      padding: 5px 8px;
+      background: #252629;
+      border: 1px solid var(--border-color);
+      border-radius: 2px;
+      font-size: 10px;
+      color: #ccc;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .tag-btn.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+
+    .save-btn-container {
+      margin-top: 20px;
+    }
+
+    #save-settings-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: bold;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: background 0.2s;
+    }
+
+    #save-settings-btn:hover {
+      filter: brightness(1.1);
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #e8e8e8;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .save-status { font-size: 10px; color: var(--accent-color); font-weight: bold; }
+    .version-info { font-size: 10px; color: #888; }
+
+    .fade-in { animation: seafDeploy 0.15s ease forwards; }
+    @keyframes seafDeploy {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header-banner">SEAF 어시스턴트</div>
+
+  <div class="container">
+    <div class="section">
+      <h3>Steam Profile URL</h3>
+      <input type="text" id="steam-url" placeholder="e.g. https://steamcommunity.com/id/...">
+    </div>
+
+    <div class="section">
+      <h3>Mission Objective</h3>
+      <div class="grid" id="category-grid"></div>
+    </div>
+
+    <div id="dynamic-area" class="section">
+      <div class="tag-group" id="difficulty-group">
+        <h3>Difficulty Level</h3>
+        <div class="tag-grid" id="difficulty-grid"></div>
+      </div>
+      <div class="tag-group" id="subtag-group">
+        <h3>Specific Tags</h3>
+        <div class="tag-grid" id="subtag-grid"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Mission Details</h3>
+      <input type="text" id="custom-title" placeholder="게시글 제목 (선택 사항)" style="margin-bottom: 8px;">
+      <textarea id="custom-content" placeholder="게시글 본문 추가 내용..."></textarea>
+    </div>
+
+    <div class="save-btn-container">
+      <button id="save-settings-btn">설정 저장</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="version-info">SYSTEM v1.0.0</div>
+    <div class="save-status" id="save-status"></div>
+  </div>
+
+  <script src="../config.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
