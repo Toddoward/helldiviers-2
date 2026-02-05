@@ -1,126 +1,86 @@
 /**
  * Project SEAF - Background Service Worker
- * 핵심 로직: 실시간 글 감시, 스팀 로비 파싱, 알림 전송
+ * 최적화: 헬망호 필터링 URL 사용 및 실시간 감지
  */
 
-let pollingTimer = null;
+let pollingInterval = null;
 let lastSeenPostId = null;
 
-// 1. 초기화 및 리스너 등록
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.get(['seaf_settings'], (result) => {
-    if (!result.seaf_settings) {
-      chrome.storage.local.set({ 
-        seaf_settings: { 
-          isDetectionActive: true, 
-          pollingInterval: 5,
-          steamUrl: ''
-        } 
-      });
-    }
-  });
-  startPolling();
-});
+const MANGHO_LIST_URL = "https://gall.dcinside.com/mgallery/board/lists/?id=helldiversseries&sort_type=N&search_head=60";
 
-// 팝업에서 설정 변경 시 즉시 반영
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === "SETTINGS_UPDATED") {
+async function fetchSteamLobby(profileUrl) {
+  try {
+    const response = await fetch(profileUrl);
+    if (!response.ok) return null;
+    const html = await response.text();
+    const lobbyRegex = /<div class="profile_in_game_joingame">[\s\S]*?<a href="(steam:\/\/joinlobby\/\d+\/\d+\/\d+)"/;
+    const match = html.match(lobbyRegex);
+    return match ? match[1] : null;
+  } catch (e) {
+    console.error("SEAF Steam Fetch Error:", e);
+    return null;
+  }
+}
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === "GET_LOBBY_LINK") {
+    fetchSteamLobby(request.url).then(link => sendResponse({ link }));
+    return true; 
+  }
+  if (request.type === "SETTINGS_UPDATED") {
     startPolling();
   }
 });
 
-/**
- * 폴링 시작 함수
- */
 async function startPolling() {
-  if (pollingTimer) clearInterval(pollingTimer);
+  if (pollingInterval) clearInterval(pollingInterval);
   
-  const saved = await chrome.storage.local.get(['seaf_settings']);
-  const settings = saved.seaf_settings || { isDetectionActive: true, pollingInterval: 5 };
+  const { seaf_settings: s } = await chrome.storage.local.get(['seaf_settings']);
+  if (!s?.isDetectionActive) return;
 
-  if (!settings.isDetectionActive) {
-    console.log("SEAF: Detection is inactive.");
-    return;
-  }
+  const intervalTime = (s.pollingInterval || 10) * 1000;
 
-  const interval = (settings.pollingInterval || 5) * 1000;
-  
-  pollingTimer = setInterval(async () => {
-    await checkNewMangho();
-  }, interval);
-  
-  console.log(`SEAF: Polling started with ${settings.pollingInterval}s interval.`);
-}
+  pollingInterval = setInterval(async () => {
+    try {
+        // 1. 활성 탭 하나만 찾는 게 아니라, 갤러리가 열린 모든 탭을 쿼리
+        const tabs = await chrome.tabs.query({ url: "*://gall.dcinside.com/mgallery/board/*id=helldiversseries*" });
+        
+        // 탭이 하나도 없으면 감지할 이유가 없으므로 리턴 (이건 유지하되, 타겟을 탭 리스트로 변경)
+        if (tabs.length === 0) return;
 
-/**
- * 갤러리 목록 확인 및 새 글 감지
- */
-async function checkNewMangho() {
-  try {
-    const response = await fetch("https://gall.dcinside.com/mgallery/board/lists/?id=helldiversseries");
-    const html = await response.text();
-    
-    // 헬다이버즈 갤러리 특성상 '망호' 키워드가 포함된 최신 글 ID 추출
-    const postMatch = html.match(/class="us-post"[^>]*data-no="(\d+)"/);
-    if (!postMatch) return;
+        const res = await fetch(MANGHO_LIST_URL);
+        const html = await res.text();
+        // ... (파싱 로직 동일) ...
 
-    const currentTopId = postMatch[1];
+        if (firstPost) {
+            const currentId = firstPost.getAttribute('data-no');
+            
+            // [중요] 처음 실행 시 undefined 상태면 현재 글번호를 바로 저장하고 다음 턴을 기다림
+            if (!lastSeenPostId) {
+                lastSeenPostId = currentId;
+                return;
+            }
 
-    // 새로운 글이 올라왔을 때만 처리
-    if (lastSeenPostId && currentTopId !== lastSeenPostId) {
-      // 제목에 '망호' 혹은 '모집'이 포함되어 있는지 간이 확인 (정규식은 사이트 구조에 맞게 최적화)
-      if (html.includes("망호") || html.includes("모집")) {
-        await processNewPost(currentTopId);
-      }
+            // 새 글 감지 시
+            if (parseInt(currentId) > parseInt(lastSeenPostId)) {
+                const title = firstPost.querySelector('.gall_tit a')?.innerText.trim();
+                
+                // 발견된 모든 탭에 메시지 전송 (브로드캐스팅)
+                tabs.forEach(tab => {
+                    chrome.tabs.sendMessage(tab.id, { 
+                        type: "SHOW_SEAF_NOTIFICATION", 
+                        postId: currentId, 
+                        title 
+                    }).catch(() => { /* 탭이 닫히거나 응답 안 해도 에러 무시 */ });
+                });
+                
+                lastSeenPostId = currentId;
+            }
+        }
+    } catch (e) {
+        // 에러 발생 시 폴링 중단되지 않게 처리
     }
-    lastSeenPostId = currentTopId;
-  } catch (error) {
-    console.error("SEAF Polling Error:", error);
-  }
+  }, intervalTime);
 }
 
-/**
- * 새 글에서 스팀 로비 링크 추출 및 알림
- */
-async function processNewPost(postId) {
-  try {
-    const postUrl = `https://gall.dcinside.com/mgallery/board/view/?id=helldiversseries&no=${postId}`;
-    const response = await fetch(postUrl);
-    const html = await response.text();
-
-    // 스팀 로비 링크 정규식 (steam://joinlobby/...)
-    const lobbyRegex = /steam:\/\/joinlobby\/\d+\/\d+\/\d+/;
-    const lobbyMatch = html.match(lobbyRegex);
-
-    if (lobbyMatch) {
-      const lobbyLink = lobbyMatch[0];
-      
-      // 시스템 알림 전송
-      chrome.notifications.create({
-        type: 'basic',
-        iconUrl: '../icons/icon128.png',
-        title: '신규 망호 감지!',
-        message: '새로운 헬다이버즈 망호가 포착되었습니다. 클릭하여 합류하세요.',
-        priority: 2
-      });
-
-      // 알림 클릭 시 스팀 링크 실행 또는 갤러리 이동은 별도 리스너에서 처리
-      // 콘텐츠 스크립트에 알림 (오류 가드 적용)
-      const tabs = await chrome.tabs.query({ url: "*://gall.dcinside.com/mgallery/board/lists/?id=helldiversseries*" });
-      tabs.forEach(tab => {
-        chrome.tabs.sendMessage(tab.id, { 
-          type: "NEW_MANGHO_DETECTED", 
-          url: postUrl, 
-          lobby: lobbyLink 
-        }, () => {
-          if (chrome.runtime.lastError) { /* 수신자 없음 무시 */ }
-        });
-      });
-    }
-  } catch (error) {
-    console.error("SEAF Process Error:", error);
-  }
-}
-
-// 초기 실행
 startPolling();

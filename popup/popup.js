@@ -17,6 +17,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const manifestData = chrome.runtime.getManifest();
   versionDisplay.innerText = `SYSTEM v${manifestData.version}`;
 
+  const iconUrl = chrome.runtime.getURL('icons/icon128.png');
+  document.documentElement.style.setProperty('--seaf-icon-url', `url("${iconUrl}")`);
+
   // 1. 초기값 설정 (문제 1 해결)
   let currentSettings = {
     steamUrl: '',
@@ -52,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const c = SEAF_CONFIG.CATEGORIES[key];
     const btn = document.createElement('div');
     btn.className = `category-btn ${currentSettings.category === key ? 'active' : ''}`;
-    btn.innerHTML = `<span>${c.emoji}</span><span>${c.name}</span>`;
+    btn.innerHTML = `<span>${c.name}</span><br><span>${c.emoji}</span>`;
     btn.onclick = () => selectCategory(key);
     categoryGrid.appendChild(btn);
   });
@@ -88,12 +91,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderDifficulty() {
     diffGrid.innerHTML = '';
-    // 문제 4 해결: 난이도 한 줄 배치 및 스타일
-    diffGrid.className = 'difficulty-row'; 
+    // tags.css의 #difficulty-grid 스타일을 타도록 설정
     SEAF_CONFIG.DIFFICULTIES.forEach(d => {
       const btn = document.createElement('div');
       btn.className = `tag-btn ${currentSettings.difficulty == d ? 'active' : ''}`;
-      btn.innerText = d; // '단' 제외하여 공간 확보
+      btn.innerText = d; 
       btn.onclick = () => {
         currentSettings.difficulty = d;
         renderDifficulty();

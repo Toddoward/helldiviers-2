@@ -11,39 +11,39 @@
   <div class="container">
     <!-- Steam Profile Section -->
     <div class="section">
-      <h3>Steam Profile</h3>
-      <input type="text" id="steam-url" placeholder="https://steamcommunity.com/id/...">
+      <seaf-h3>Steam Profile</seaf-h3>
+      <input type="seaf_text" id="steam-url" placeholder="https://steamcommunity.com/id/...">
     </div>
 
     <!-- Mission Category Section -->
     <div class="section">
-      <h3>Mission Objects (제목 자동 완성 태그)</h3>
+      <seaf-h3>Mission Objects (제목 자동 완성 태그)</seaf-h3>
       <div id="category-grid" class="category-grid"></div>
     </div>
 
     <!-- Dynamic Options (Difficulty & Special Operations) -->
     <div id="dynamic-area" class="section" style="display:none;">
       <div class="tag-group" id="difficulty-group">
-        <h3>Difficulty Level</h3>
+        <seaf-h3>Difficulty Level</seaf-h3>
         <div id="difficulty-grid" class="tag-grid"></div>
       </div>
       <div class="tag-group" id="subtag-group" style="margin-top:10px;">
-        <h3>Specific Objects</h3>
+        <seaf-h3>Specific Objects</seaf-h3>
         <div id="subtag-grid" class="tag-grid"></div>
       </div>
     </div>
 
     <!-- Preview Section -->
     <div class="section">
-      <h3>Mission Details (선택 사항)</h3>
-      <input type="text" id="custom-title" placeholder="추가 제목">
-      <textarea id="custom-content" placeholder="본문 추가 내용" style="margin-top:8px; height:60px;"></textarea>
+      <seaf-h3>Mission Details (선택 사항)</seaf-h3>
+      <input type="seaf_text" id="custom-title" placeholder="추가 제목">
+      <textarea type="seaf_text" id="custom-content" placeholder="본문 추가 내용" style="margin-top:8px; height:60px;"></textarea>
     </div>
 
     <!-- 실시간 감지 컨트롤 섹션 -->
     <div class="section">
       <div class="control-row">
-        <h3>Auto Mangho Detection</h3>
+        <seaf-h3>Auto Mangho Detection</seaf-h3>
         <label class="switch">
           <input type="checkbox" id="detection-toggle">
           <span class="slider round"></span>
