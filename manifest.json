@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
   "name": "SEAF Assistant: 헬다이버즈 시리즈 갤러리 어시스턴트",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "헬다이버즈 시리즈 갤러리 망호 자동 생성 및 참여, 실시간 알림 지원 확장 프로그램",
   "permissions": [
     "storage",
-    "tabs",
-    "notifications"
+    "alarms",
+    "tabs"
   ],
   "host_permissions": [
     "https://gall.dcinside.com/mgallery/board/*id=helldiversseries*",
@@ -29,9 +29,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://gall.dcinside.com/mgallery/board/lists/?id=helldiversseries*",
-        "https://gall.dcinside.com/mgallery/board/view/?id=helldiversseries*",
-        "https://gall.dcinside.com/mgallery/board/write/?id=helldiversseries*"
+        "https://gall.dcinside.com/mgallery/board/*id=helldiversseries*"
       ],
       "js": [
         "config.js", 

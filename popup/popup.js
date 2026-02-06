@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
+  // --- 기존 UI 요소 참조 ---
   const versionDisplay = document.getElementById('version-display');
   const steamInput = document.getElementById('steam-url');
   const detectionToggle = document.getElementById('detection-toggle');
@@ -14,13 +15,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const saveBtn = document.getElementById('save-settings-btn');
   const statusEl = document.getElementById('save-status');
 
+  // --- 기존 초기 설정 로직 ---
   const manifestData = chrome.runtime.getManifest();
-  versionDisplay.innerText = `SYSTEM v${manifestData.version}`;
+  versionDisplay.innerText = `SEAF Assistant v${manifestData.version}`;
 
   const iconUrl = chrome.runtime.getURL('icons/icon128.png');
   document.documentElement.style.setProperty('--seaf-icon-url', `url("${iconUrl}")`);
 
-  // 1. 초기값 설정 (문제 1 해결)
   let currentSettings = {
     steamUrl: '',
     pollingInterval: 5,
@@ -51,23 +52,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   // 카테고리 렌더링
-  Object.keys(SEAF_CONFIG.CATEGORIES).forEach(key => {
-    const c = SEAF_CONFIG.CATEGORIES[key];
-    const btn = document.createElement('div');
-    btn.className = `category-btn ${currentSettings.category === key ? 'active' : ''}`;
-    btn.innerHTML = `<span>${c.name}</span><br><span>${c.emoji}</span>`;
-    btn.onclick = () => selectCategory(key);
-    categoryGrid.appendChild(btn);
-  });
-
-  if (currentSettings.category) selectCategory(currentSettings.category);
+  if (typeof SEAF_CONFIG !== 'undefined') {
+    Object.keys(SEAF_CONFIG.CATEGORIES).forEach(key => {
+      const c = SEAF_CONFIG.CATEGORIES[key];
+      const btn = document.createElement('div');
+      btn.className = `category-btn ${currentSettings.category === key ? 'active' : ''}`;
+      btn.innerHTML = `<span>${c.name}</span><br><span>${c.emoji}</span>`;
+      btn.onclick = () => selectCategory(key);
+      categoryGrid.appendChild(btn);
+    });
+    if (currentSettings.category) selectCategory(currentSettings.category);
+  }
 
   function selectCategory(key) {
-    // 문제 2 해결: 종족 변경 시 세부 태그 초기화
     if (currentSettings.category !== key) {
         currentSettings.subTag = ''; 
     }
-    
     currentSettings.category = key;
     const cData = SEAF_CONFIG.CATEGORIES[key];
 
@@ -76,7 +76,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     dynamicArea.style.display = 'block';
-    
     if (cData.hasDifficulty) {
       diffGroup.style.display = 'block';
       renderDifficulty();
@@ -84,14 +83,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       diffGroup.style.display = 'none';
       currentSettings.difficulty = '';
     }
-
     renderSubTags(key);
     updateLivePreview();
   }
 
   function renderDifficulty() {
     diffGrid.innerHTML = '';
-    // tags.css의 #difficulty-grid 스타일을 타도록 설정
     SEAF_CONFIG.DIFFICULTIES.forEach(d => {
       const btn = document.createElement('div');
       btn.className = `tag-btn ${currentSettings.difficulty == d ? 'active' : ''}`;
@@ -140,9 +137,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentSettings.customTitle = title;
   }
 
-  // 문제 5 해결: 데이터 유효성 검사 및 저장 피드백
+  // 저장 버튼
   saveBtn.onclick = () => {
-    if (!steamInput.value.includes('steamcommunity.com')) {
+    if (!steamInput.value.includes('steamcommunity.com') && steamInput.value.trim() !== "") {
       showStatus("STEAM URL 확인 요망", "error");
       return;
     }
@@ -153,7 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     chrome.storage.local.set({ seaf_settings: currentSettings }, () => {
       showStatus("DEPLOYED", "success");
-      // 백그라운드에 즉시 알림 (선택 사항)
+      // 통합된 background 알람 시스템에 신호 전달
       chrome.runtime.sendMessage({ type: "SETTINGS_UPDATED" });
     });
   };
@@ -163,4 +160,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     statusEl.className = type;
     setTimeout(() => { statusEl.innerText = ""; }, 2500);
   }
+
+  // --- TEST SYSTEM START (삭제 예정) ---
+  const logDisplay = document.getElementById('test-log-display');
+  const linkList = document.getElementById('test-link-list');
+
+  // 로그 및 링크 업데이트 함수
+  const updateTestUI = async () => {
+    const data = await chrome.storage.local.get(['systemLogs', 'testLobbyLinks']);
+    
+    // 로그 렌더링
+    if (data.systemLogs) {
+      logDisplay.innerHTML = data.systemLogs.map(log => 
+        `<div><span style="color:#888">[${log.time}]</span> ${log.msg}</div>`
+      ).join('');
+      logDisplay.scrollTop = 0; // 최신 로그 상단 고정
+    }
+
+    // 링크 렌더링
+    if (data.testLobbyLinks && data.testLobbyLinks.length > 0) {
+      linkList.innerHTML = data.testLobbyLinks.map(link => 
+        `<div style="margin-bottom:5px; border-bottom:1px solid #ccc; padding-bottom:3px;">
+          ID: ${link.postId} <br>
+          <a href="${link.lobby}" target="_blank" style="color:blue;">[JOIN LOBBY]</a>
+         </div>`
+      ).join('');
+    } else {
+      linkList.innerText = "발견된 링크 없음";
+    }
+  };
+
+  // 초기 로드 시 실행
+  updateTestUI();
+
+  // 스토리지 변경 감지
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.systemLogs || changes.testLobbyLinks) {
+      updateTestUI();
+    }
+  });
+  // --- TEST SYSTEM END ---
 });

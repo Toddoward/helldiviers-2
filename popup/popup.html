@@ -56,13 +56,26 @@
       <input type="range" id="polling-slider" min="1" max="30" step="1" value="5" style="margin-top: 5px;">
     </div>
 
-    <button id="save-settings-btn" style="width:90%; padding:7px; padding-right:13px; align-items: center; background:var(--color-primary); color:white; border:none; border-radius:4px; font-size:16px; font-weight:500; letter-spacing:5px; cursor:pointer;">💾SAVE</button>
+    <button id="save-settings-btn" style="width:100%; padding:7px; padding-right:12px; align-items: center; background:var(--color-primary); color:white; border:none; border-radius:4px; font-size:16px; font-weight:500; letter-spacing:5px; cursor:pointer;">💾SAVE</button>
   </div>
 
   <div class="footer">
-    <div class="version-info" id="version-display">SYSTEM v0.0.1</div>
+    <div class="version-info" id="version-display" style="font-size: 12px;">SEAF Assistant v0.0.3</div>
     <div id="save-status"></div>
   </div>
+
+  <!-- --- TEST SYSTEM START (삭제 예정) --- -->
+  <div id="test-system-area" style="margin-top: 20px; padding: 10px; border-top: 2px dashed #ccc; background: #f9f9f9; font-family: monospace; font-size: 11px;">
+    <h3 style="margin: 0 0 10px 0; color: #666;">🛠 TEST LOGS</h3>
+    <div id="test-log-display" style="height: 75px; overflow-y: auto; background: #eee; padding: 5px; border: 1px solid #ddd; margin-bottom: 10px;">
+      대기 중...
+    </div>
+    <h3 style="margin: 0 0 5px 0; color: #666;">🔗 DETECTED LINKS</h3>
+    <div id="test-link-list" style="background: #eee; padding: 5px; border: 1px solid #ddd;">
+      발견된 링크 없음
+    </div>
+  </div>
+  <!-- --- TEST SYSTEM END --- -->
 
   <script src="../config.js"></script>
   <script src="popup.js"></script>
