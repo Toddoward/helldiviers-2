@@ -238,7 +238,7 @@ const lobbyLink = await fetchSteamLobby(profileUrl);
 ### 로컬 개발
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/your-username/SEAF-Assistant.git
+git clone https://github.com/Toddoward/SEAF-Assistant.git
 
 # 2. Chrome 확장 프로그램 페이지 접속
 chrome://extensions/
@@ -304,7 +304,7 @@ chrome://extensions/ → SEAF Assistant → service worker 클릭
 
 ## 🤝 기여하기
 
-버그 리포트 및 기능 제안은 [Issues](https://github.com/your-username/SEAF-Assistant/issues)에 등록해주세요.
+버그 리포트 및 기능 제안은 [Issues](https://github.com/Toddoward/SEAF-Assistant/issues)에 등록해주세요.
 
 ### 개발 가이드라인
 1. `seaf-` 접두사 네이밍 규칙 준수
@@ -322,7 +322,7 @@ MIT License
 ## 💬 문의
 
 - **개발자**: ToddHoward
-- **이슈**: [GitHub Issues](https://github.com/your-username/SEAF-Assistant/issues)
+- **이슈**: [GitHub Issues](https://github.com/Toddoward/SEAF-Assistant/issues)
 
 ---
 
