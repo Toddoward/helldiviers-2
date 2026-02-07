@@ -5,7 +5,7 @@
 
 /* 1. CSS 변수 (전역 테마) */
 :root {
-  --seaf-bg-main: #f0f0f0;
+  --seaf-bg-main: #ffffff;
   --seaf-bg-card: #e9e9f0;
   --seaf-bg-input: #dcdce6;
   --seaf-color-primary: #41639C;
